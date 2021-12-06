@@ -1,0 +1,41 @@
+name: 'Jira Check'
+description: 'check the Jira issue status'
+author: 'Mahmoud Almasri'
+inputs:
+  organization-name: 
+    description: 'The name of the organization on Jira'
+    required: true
+    default: 'knawat'
+  jira-token:  
+    description: 'Jira Token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+      - name: Extract Issue name
+        shell: bash
+        run: |
+          if [[ "$(echo ${GITHUB_HEAD_REF} | cut -d "/" -f1)" =~ (feature|hotfix|bugfix) && ! "$(echo ${GITHUB_HEAD_REF} | cut -d "/" -f2)" =~ [A-Z]+-[0-9]+ ]]; then
+            echo "Your PR is not connected to an issue on Jira, please create an issur for it."
+            exit 1
+          else
+            echo "##[set-output name=name;]$(echo ${GITHUB_HEAD_REF} | grep -Eo '[A-Z]+-[0-9]+')"
+          fi 
+        id: issue_name
+      - name: Get Issue Status
+        shell: bash
+        run: |
+          Response=$(curl --location --request GET "https://${{ inputs.organization-name }}.atlassian.net/rest/api/3/issue/${{steps.issue_name.outputs.name}}?fields=status" \
+          --header 'Accept: application/json' \
+          --header "Authorization: ${{ inputs.jira-token }}" )
+           echo "##[set-output name=status;]$(echo $Response | jq '.fields.status.name')"
+           echo $Response | jq '.fields.status.name'
+        id: issue_status
+      - if: ${{ !contains(steps.issue_status.outputs.status, 'Done') }}
+        name: Try to fail
+        run: |
+          echo "The issue not done yet."
+          exit 1
+branding:
+  icon: 'check-circle'  
+  color: 'orange'
