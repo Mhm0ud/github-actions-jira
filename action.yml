@@ -34,7 +34,7 @@ runs:
       - name: Try to fail
         shell: bash
         run: |
-          if [[ !contains(steps.issue_status.outputs.status, 'Done') ]]; then
+          if [[ ! ${{steps.issue_status.outputs.status}} =~ "Done" ]]; then
             echo "Your issue on JIRA still not Active."
             exit 1
           fi 
