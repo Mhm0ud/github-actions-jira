@@ -31,11 +31,13 @@ runs:
            echo "##[set-output name=status;]$(echo $Response | jq '.fields.status.name')"
            echo $Response | jq '.fields.status.name'
         id: issue_status
-      - if: ${{ !contains(steps.issue_status.outputs.status, 'Done') }}
-        name: Try to fail
+      - name: Try to fail
+        shell: bash
         run: |
-          echo "The issue not done yet."
-          exit 1
+          if [[ !contains(steps.issue_status.outputs.status, 'Done') ]]; then
+            echo "Your issue on JIRA still not Active."
+            exit 1
+          fi 
 branding:
   icon: 'check-circle'  
   color: 'orange'
