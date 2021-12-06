@@ -1,4 +1,4 @@
-name: 'Jira Check'
+name: 'Jira Check Issue Status'
 description: 'check the Jira issue status'
 author: 'Mahmoud Almasri'
 inputs:
